@@ -1,4 +1,4 @@
-import ballerina/sql;
+port ballerina/sql;
 import ballerina/crypto;
 import ballerina/uuid;
 import ballerina/time;
@@ -103,15 +103,20 @@ public function registerUser(sql:Client dbClient, UserRegister userRegister) ret
     sql:ParameterizedQuery insertQuery = `
         INSERT INTO users (username, email, password_hash) 
         VALUES (${userRegister.username}, ${userRegister.email}, ${hashedPassword})
-        RETURNING id, username, email, created_at
     `;
     
-    stream<UserResponse, sql:Error?> insertResult = dbClient->query(insertQuery);
-    record {|UserResponse value;|}? result = check insertResult.next();
-    check insertResult.close();
+    sql:ExecutionResult result = check dbClient->execute(insertQuery);
     
-    if result is record {|UserResponse value;|} {
-        return result.value;
+    // Get the inserted user
+    if result.affectedRowCount > 0 {
+        sql:ParameterizedQuery selectQuery = `SELECT id, username, email, created_at FROM users WHERE email = ${userRegister.email}`;
+        stream<UserResponse, sql:Error?> selectResult = dbClient->query(selectQuery);
+        record {|UserResponse value;|}? userResult = check selectResult.next();
+        check selectResult.close();
+        
+        if userResult is record {|UserResponse value;|} {
+            return userResult.value;
+        }
     }
     
     return error("Failed to create user");

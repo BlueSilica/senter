@@ -75,10 +75,17 @@ public function registerUser(sql:Client dbClient, UserRegister userRegister) ret
     stream<record {}, sql:Error?> resultStream = dbClient->query(checkQuery);
     
     record {}|error? existingUser = resultStream.next();
-    check resultStream.close();
+    error? closeResult = resultStream.close();
+    if closeResult is error {
+        return error("Error closing check query stream: " + closeResult.message());
+    }
     
     if existingUser is record {} {
         return error("User with this username or email already exists");
+    }
+    
+    if existingUser is error {
+        return error("Error checking existing user: " + existingUser.message());
     }
     
     // Hash password
@@ -88,19 +95,22 @@ public function registerUser(sql:Client dbClient, UserRegister userRegister) ret
     sql:ParameterizedQuery insertQuery = `
         INSERT INTO users (username, email, password_hash) 
         VALUES (${userRegister.username}, ${userRegister.email}, ${hashedPassword})
-        RETURNING id, username, email, created_at
+        RETURNING id, username, email, created_at::text as created_at
     `;
     
     stream<UserResponse, sql:Error?> insertStream = dbClient->query(insertQuery);
     record {|UserResponse value;|}|error? result = insertStream.next();
-    check insertStream.close();
+    error? insertCloseResult = insertStream.close();
+    if insertCloseResult is error {
+        return error("Error closing insert query stream: " + insertCloseResult.message());
+    }
     
     if result is error {
-        return error("Failed to create user");
+        return error("Failed to create user: " + result.message());
     }
     
     if result is () {
-        return error("No user data returned");
+        return error("No user data returned from insert operation");
     }
     
     return result.value;
@@ -110,7 +120,7 @@ public function registerUser(sql:Client dbClient, UserRegister userRegister) ret
 public function loginUser(sql:Client dbClient, UserLogin userLogin) returns string|error {
     // Get user by username
     sql:ParameterizedQuery userQuery = `
-        SELECT id, username, email, password_hash, created_at 
+        SELECT id, username, email, password_hash, created_at::text as created_at 
         FROM users 
         WHERE username = ${userLogin.username}
     `;
@@ -154,7 +164,7 @@ public function loginUser(sql:Client dbClient, UserLogin userLogin) returns stri
 // Validate session and get user
 public function validateSession(sql:Client dbClient, string sessionId) returns UserResponse|error {
     sql:ParameterizedQuery sessionQuery = `
-        SELECT u.id, u.username, u.email, u.created_at
+        SELECT u.id, u.username, u.email, u.created_at::text as created_at
         FROM users u
         INNER JOIN user_sessions s ON u.id = s.user_id
         WHERE s.session_id = ${sessionId} AND s.expires_at > CURRENT_TIMESTAMP
