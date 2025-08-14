@@ -122,20 +122,20 @@ service / on new http:Listener(8080) {
 
 public function main() returns error? {
     io:println("🚀 Starting Ballerina Backend Server...");
-    io:println("📡 Server running on http://localhost:9090");
+    io:println("📡 Server running on http://localhost:8080");
     io:println("");
     io:println("📋 Available endpoints:");
-    io:println("   ✅ Health check: GET http://localhost:9090/health");
+    io:println("   ✅ Health check: GET http://localhost:8080/health");
     io:println("");
     io:println("🔐 Authentication endpoints:");
-    io:println("   📝 Register: POST http://localhost:9090/auth/register");
-    io:println("   🔑 Login: POST http://localhost:9090/auth/login");
-    io:println("   🚪 Logout: POST http://localhost:9090/auth/logout");
-    io:println("   👤 Profile: GET http://localhost:9090/auth/profile");
+    io:println("   📝 Register: POST http://localhost:8080/auth/register");
+    io:println("   🔑 Login: POST http://localhost:8080/auth/login");
+    io:println("   🚪 Logout: POST http://localhost:8080/auth/logout");
+    io:println("   👤 Profile: GET http://localhost:8080/auth/profile");
     io:println("");
     io:println("⚙️  Admin endpoints:");
-    io:println("   🔍 DB test: GET http://localhost:9090/admin/db/test");
-    io:println("   🏗️  Initialize DB: POST http://localhost:9090/admin/db/init");
+    io:println("   🔍 DB test: GET http://localhost:8080/admin/db/test");
+    io:println("   🏗️  Initialize DB: POST http://localhost:8080/admin/db/init");
     io:println("");
     io:println("💡 Remember to initialize database tables first!");
 }
