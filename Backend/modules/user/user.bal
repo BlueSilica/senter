@@ -58,7 +58,8 @@ public function createSessionsTable(sql:Client dbClient) returns sql:ExecutionRe
 
 // Hash password
 function hashPassword(string password) returns string|error {
-    byte[] hashedBytes = crypto:hashSha256(password.toBytes());
+    byte[] passwordBytes = password.toBytes();
+    byte[] hashedBytes = crypto:hashSha256(passwordBytes);
     return hashedBytes.toBase16();
 }
 
@@ -147,7 +148,7 @@ public function loginUser(sql:Client dbClient, UserLogin userLogin) returns stri
     }
     
     // Generate session ID
-    string sessionId = uuid:createType1AsString();
+    string sessionId = uuid:createType4AsString();
     int userId = <int>user["id"];
     
     // Create session
