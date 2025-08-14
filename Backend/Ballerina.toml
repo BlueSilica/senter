@@ -1,0 +1,13 @@
+[package]
+org = "adeep"
+name = "Backend"
+version = "0.1.0"
+distribution = "2201.12.7"
+
+[build-options]
+observabilityIncluded = true
+
+[[platform.java11.dependency]]
+groupId = "org.postgresql"
+artifactId = "postgresql"
+version = "42.5.1"
